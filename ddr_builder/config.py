@@ -5,9 +5,22 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Gemini: use GEMINI_API_KEY or common alias GOOGLE_API_KEY
-GEMINI_API_KEY = (os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY", "")).strip()
-# Default works with current AI Studio model list; override in .env if needed.
+
+def _get_api_key() -> str:
+    # 1. Environment variable / .env file
+    key = (os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY", "")).strip()
+    if key:
+        return key
+    # 2. Streamlit secrets (when deployed on Streamlit Cloud)
+    try:
+        import streamlit as st
+        key = (st.secrets.get("GEMINI_API_KEY") or st.secrets.get("GOOGLE_API_KEY", "")).strip()
+    except Exception:
+        pass
+    return key
+
+
+GEMINI_API_KEY = _get_api_key()
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
 CHUNK_MAX_CHARS = int(os.getenv("CHUNK_MAX_CHARS", "12000"))

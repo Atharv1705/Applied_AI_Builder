@@ -1,4 +1,5 @@
 # DDR Report Generation System
+streamlit>=1.35.0
 google-genai>=1.0.0
 pymupdf>=1.24.0
 python-dotenv>=1.0.0
