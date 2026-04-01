@@ -250,12 +250,32 @@ def apply_thermal_area_mapping(
     if not thermal_areas_raw or not inspection_areas_raw:
         return thermal, []
 
-    mapping = map_thermal_areas(thermal_areas_raw, inspection_areas_raw)
+    # Filter out areas with no real name — treat them as unmapped general thermal data
+    valid_thermal_areas = [ta for ta in thermal_areas_raw if ta.strip().lower() != "not available"]
+    invalid_thermal_areas = [ta for ta in thermal_areas_raw if ta.strip().lower() == "not available"]
 
     notes: list[str] = []
+
+    # Add a single consolidated note for all unnamed thermal areas (avoid 30 duplicate lines)
+    if invalid_thermal_areas:
+        notes.append(
+            f"Thermal report contains {len(invalid_thermal_areas)} area(s) with no location name — "
+            "thermal readings exist but cannot be mapped to specific inspection areas. "
+            "General thermal data has been noted in the property summary."
+        )
+
+    if not valid_thermal_areas:
+        # No mappable thermal areas at all — return thermal as-is with the note
+        return thermal, notes
+
+    mapping = map_thermal_areas(valid_thermal_areas, inspection_areas_raw)
+
     updated_areas = []
     for area in (thermal.get("areas") or []):
         ta = area.get("area_name", "")
+        if ta.strip().lower() == "not available":
+            # Skip unmapped areas — already noted above
+            continue
         mapped = mapping.get(ta, "Unknown")
         new_area = dict(area)
         if mapped == "Unknown":
@@ -294,10 +314,15 @@ def merge_to_ddr(
     )
     normalized = _normalize_ddr_dict(data)
 
-    # Inject thermal mapping notes into missing_information
+    # Inject thermal mapping notes into missing_information (deduplicated)
     if mapping_notes:
         existing = normalized.get("missing_information") or []
-        normalized["missing_information"] = existing + mapping_notes
+        seen = set(existing)
+        for note in mapping_notes:
+            if note not in seen:
+                existing.append(note)
+                seen.add(note)
+        normalized["missing_information"] = existing
 
     return DDRIntermediate.model_validate(normalized)
 
@@ -350,7 +375,18 @@ def _normalize_ddr_dict(data: dict[str, Any]) -> dict[str, Any]:
         v = out.get(key) or []
         if isinstance(v, str):
             v = [v] if v else []
-        out[key] = [str(x) for x in v]
+        items = [str(x) for x in v]
+        # Deduplicate while preserving order
+        seen_items: set[str] = set()
+        deduped: list[str] = []
+        for item in items:
+            # Truncate very long single items (e.g. raw temperature dumps)
+            if len(item) > 300:
+                item = item[:297] + "..."
+            if item not in seen_items:
+                seen_items.add(item)
+                deduped.append(item)
+        out[key] = deduped
 
     out["property_summary"] = str(out.get("property_summary", "") or "Not Available")
     return out
