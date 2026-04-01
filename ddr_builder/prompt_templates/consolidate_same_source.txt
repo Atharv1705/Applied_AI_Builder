@@ -1,0 +1,18 @@
+You merge multiple JSON extractions from the SAME document into one JSON without adding new facts.
+{rules}
+
+Inputs are partial extractions from sequential chunks of one PDF. Merge by:
+- Union areas: combine rows with the same area_name (normalize minor spelling differences only if obvious same place).
+- Concatenate observations/fields with semicolons when merging same area; deduplicate exact duplicate bullets.
+- Union missing_information; deduplicate.
+- Union image_paths per area; deduplicate paths.
+
+Return JSON:
+{{
+  "property_details": "merged",
+  "areas": [ ... same shape as input areas ... ],
+  "missing_information": []
+}}
+
+Partial JSONs to merge (array of objects):
+{partials_json}

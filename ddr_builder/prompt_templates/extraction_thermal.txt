@@ -1,0 +1,23 @@
+You are extracting structured facts from a THERMAL REPORT (text only — you cannot see pixels).
+{rules}
+
+Return a SINGLE JSON object with this shape:
+{{
+  "property_details": "string if stated in chunk, else Not Available",
+  "areas": [
+    {{
+      "area_name": "location as named in this chunk",
+      "thermal_finding": "summary of thermal patterns or findings for this area from this chunk only",
+      "thermal_anomalies": "only if explicitly described, else Not Available",
+      "temperature_readings": "delta T, °C/°F values, references if present, else Not Available",
+      "image_paths": ["paths from Image Catalog related to this area in this chunk"]
+    }}
+  ],
+  "missing_information": ["unclear or absent items in this chunk"]
+}}
+
+Image Catalog:
+{image_catalog}
+
+--- SOURCE CHUNK ---
+{text}

@@ -1,0 +1,26 @@
+You are extracting structured facts from an INSPECTION REPORT (text only — you cannot see pixels).
+{rules}
+
+Return a SINGLE JSON object with this shape (no markdown, no commentary):
+{{
+  "property_details": "string — site/property identifiers and scope if stated, else Not Available",
+  "areas": [
+    {{
+      "area_name": "specific location name from the report",
+      "observation": "verbatim-style summary of visual/defect observations from this chunk only",
+      "issues": ["list of issue phrases tied to this area if present"],
+      "temperature_readings": "any numeric temperatures tied to this area in this chunk, else Not Available",
+      "measurements": "dimensions or readings if present, else Not Available",
+      "moisture_leakage_cracks_insulation": "only if mentioned in this chunk, else Not Available",
+      "image_paths": ["full paths from the Image Catalog that plausibly relate to this area; empty array if none"]
+    }}
+  ],
+  "missing_information": ["fields or topics the chunk suggests are absent or unclear"]
+}}
+
+If this chunk has no area-specific content, use areas: [].
+Image Catalog:
+{image_catalog}
+
+--- SOURCE CHUNK ---
+{text}

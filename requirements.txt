@@ -1,0 +1,11 @@
+# DDR Report Generation System
+google-genai>=1.0.0
+pymupdf>=1.24.0
+python-dotenv>=1.0.0
+pydantic>=2.0.0
+reportlab>=4.2.0
+Pillow>=10.0.0
+python-docx>=1.1.0
+
+# Optional: OCR for scanned PDFs (install tesseract on OS separately)
+# pytesseract>=0.3.10

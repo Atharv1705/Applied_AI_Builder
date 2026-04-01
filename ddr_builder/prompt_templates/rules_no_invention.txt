@@ -1,0 +1,5 @@
+CRITICAL RULES:
+- Use ONLY information explicitly present in the source text and image list. Do NOT invent readings, locations, or issues.
+- If something is not stated, use the exact phrase "Not Available" for that field or add it to missing_information.
+- If two sources disagree, record a conflict description in conflicts (merge step) or conflict_note on the area.
+- Write in simple, client-friendly English.
