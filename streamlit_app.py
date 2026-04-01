@@ -63,8 +63,17 @@ if ins_file and th_file:
 
                 if result.ddr.missing_information:
                     st.subheader("ℹ️ Missing Information")
-                    for m in result.ddr.missing_information:
-                        st.caption(f"• {m}")
+                    # Group into categories for readability
+                    thermal_notes = [m for m in result.ddr.missing_information if "thermal" in m.lower()]
+                    other_notes   = [m for m in result.ddr.missing_information if "thermal" not in m.lower()]
+                    if other_notes:
+                        with st.expander(f"Inspection gaps ({len(other_notes)} items)", expanded=False):
+                            for m in other_notes:
+                                st.caption(f"• {m}")
+                    if thermal_notes:
+                        with st.expander(f"Thermal mapping notes ({len(thermal_notes)} items)", expanded=False):
+                            for m in thermal_notes:
+                                st.caption(f"• {m}")
 
             except Exception as e:
                 st.error(f"Error generating report: {e}")
