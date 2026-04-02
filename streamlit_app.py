@@ -52,18 +52,44 @@ if ins_file and th_file:
                         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                     )
 
-                # Show summary from intermediate JSON
-                st.subheader("Property Summary")
+                st.divider()
+
+                # Property Summary
+                st.subheader("📋 Property Summary")
                 st.info(result.ddr.property_summary or "Not Available")
 
+                # Severity bands
+                col_h, col_m, col_l = st.columns(3)
+                with col_h:
+                    st.metric("🔴 High Severity", len(result.ddr.high_severity))
+                with col_m:
+                    st.metric("🟡 Medium Severity", len(result.ddr.medium_severity))
+                with col_l:
+                    st.metric("🟢 Low Severity", len(result.ddr.low_severity))
+
+                # Area-wise preview
+                if result.ddr.areas:
+                    st.subheader("🏠 Area-wise Findings")
+                    for area in result.ddr.areas:
+                        with st.expander(f"📍 {area.area_name}", expanded=False):
+                            st.markdown(f"**Observation:** {area.observation or 'Not Available'}")
+                            st.markdown(f"**Thermal Finding:** {area.thermal_finding or 'Not Available'}")
+                            st.markdown(f"**Root Cause:** {area.root_cause or 'Not Available'}")
+                            sev_color = {"High": "🔴", "Medium": "🟡", "Low": "🟢"}.get(area.severity, "⚪")
+                            st.markdown(f"**Severity:** {sev_color} {area.severity or 'Not Available'} — {area.severity_reason or ''}")
+                            st.markdown(f"**Recommended Action:** {area.recommended_action or 'Not Available'}")
+                            if area.conflict_note:
+                                st.warning(f"⚠️ Conflict: {area.conflict_note}")
+
+                # Conflicts
                 if result.ddr.conflicts:
                     st.subheader("⚠️ Conflicts Detected")
                     for c in result.ddr.conflicts:
                         st.warning(c)
 
+                # Missing information
                 if result.ddr.missing_information:
                     st.subheader("ℹ️ Missing Information")
-                    # Group into categories for readability
                     thermal_notes = [m for m in result.ddr.missing_information if "thermal" in m.lower()]
                     other_notes   = [m for m in result.ddr.missing_information if "thermal" not in m.lower()]
                     if other_notes:
@@ -74,6 +100,13 @@ if ins_file and th_file:
                         with st.expander(f"Thermal mapping notes ({len(thermal_notes)} items)", expanded=False):
                             for m in thermal_notes:
                                 st.caption(f"• {m}")
+
+                # Intermediate JSON — shows pipeline reasoning layer
+                st.subheader("🔍 Intermediate Reasoning JSON")
+                st.caption("This structured layer is generated before the final report — it shows how the system reasons about root causes, severity, and conflicts.")
+                with st.expander("View intermediate JSON", expanded=False):
+                    import json
+                    st.json(json.loads(result.ddr.model_dump_json()))
 
             except Exception as e:
                 st.error(f"Error generating report: {e}")
